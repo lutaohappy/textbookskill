@@ -1,0 +1,32 @@
+name: 项目型（需求+方案+实践）
+description: 以项目驱动为主，从需求分析到方案交付全流程
+sections:
+  - heading: 学习目标
+    type: objectives
+    budget_ratio: 0.05
+    write_task: 撰写三维学习目标（知识目标2-3条、技能目标2-3条、素养目标1-2条）。
+  - heading: 需求分析与方案设计
+    type: requirement
+    budget_ratio: 0.20
+    write_task: 项目背景+用户痛点+方案对比表（4-6个维度）+选型结论。
+  - heading: 核心技术讲解
+    type: knowledge
+    budget_ratio: 0.25
+    write_task: 3个技术点（任务描述→知识支撑→行动指南），每点含代码示例。
+  - heading: 方案设计
+    type: design
+    budget_ratio: 0.20
+    write_task: 设计任务描述（项目背景+数据说明+任务要求+交付物）。
+  - heading: 任务实践
+    type: experiment
+    budget_ratio: 0.20
+    write_task: 3-5个实践步骤，包含背景、步骤、验证方法。
+  - heading: 自测题
+    type: self_test
+    budget_ratio: 0.05
+    write_task: 3道选择题+2道思考题+1道实操题。
+  - heading: 课后拓展
+    type: case
+    budget_ratio: 0.05
+    optional: true
+    write_task: 拓展阅读资料、延伸思考题、课外实践任务。

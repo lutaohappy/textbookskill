@@ -1,0 +1,451 @@
+template: 项目型
+course: 深度学习
+chapters:
+- num: 1
+  title: 深度学习初探——手写数字识别
+  hours: 12
+  theory_ratio: 0.55
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 需求分析与方案设计
+    data:
+      background: 邮政系统每天需要处理数百万封手写信件，邮编自动识别是分拣系统的核心技术。传统OCR方法依赖手工特征设计，开发周期长且泛化能力有限。深度学习通过端到端学习自动提取特征，在MNIST数据集上达到99.8%以上的识别准确率。
+      pain_points: 传统图像识别方法需要大量人工特征工程，开发周期长，对字体变形和噪声敏感，泛化能力不足且维护成本高。
+      comparison:
+        headers:
+        - 对比维度
+        - 传统方法（SVM+HOG）
+        - 深度学习方法（CNN/MLP）
+        rows:
+        - - 特征提取
+          - 人工设计特征
+          - 自动学习特征
+        - - 开发周期
+          - 2-4周特征工程
+          - 1-3天模型配置
+        - - 识别准确率
+          - ~97%（MNIST）
+          - 99.8%+（MNIST）
+        - - 泛化能力
+          - 字体变化敏感
+          - 抗噪声和形变
+        - - 维护成本
+          - 特征需不断调整
+          - 数据驱动自动适应
+        conclusion: 深度学习端到端方案在准确率、开发效率和维护成本上全面优于传统方法，是手写识别的首选技术路线。
+  - heading: 核心技术讲解
+    data:
+      topics:
+        感知机与神经元模型:
+          desc: 接到手写数字识别任务需要理解单个神经元如何完成分类——感知机是最简单的神经网络单元，模仿生物神经元的"全有或全无"响应机制。
+          know: 感知机接收多个输入信号x₁ x₂ ... xn，每个信号有对应权重w₁ w₂ ... wn，加权求和后通过阶跃函数输出0或1。数学表达式为output=1若Σwᵢxᵢ+b>0否则为0。感知机收敛定理保证线性可分数据在有限步内收敛，但无法处理异或XOR问题——这直接推动了多层神经网络的诞生。权重w衡量特征重要性，偏置b决定激活阈值，两者共同决定了决策边界的位置和走向。
+          guide: 感知机适合理解神经网络的基本概念，但不适合实际项目——线性不可分数据无效。实践中用Sigmoid或ReLU替代阶跃函数。权重初始化用均匀分布，不要全零初始化否则梯度无法传播。
+        反向传播算法:
+          desc: 单层感知机能力有限需要多层网络——但多层网络如何学习？反向传播是深度学习训练的基石算法，让误差从输出层逐层向前传播更新每一层的权重。
+          know: 反向传播基于链式求导法则：∂L/∂w=∂L/∂output·∂output/∂z·∂z/∂w。损失函数L衡量预测与真实值的差距，常见选择是交叉熵损失。梯度下降沿负梯度方向更新权重：w=w-η·∂L/∂w，学习率η控制步长。三大问题：梯度消失（Sigmoid饱和区梯度趋近0）、梯度爆炸（梯度指数增长）和局部最优——现代深度学习的优化器、BN和残差连接正是为解决这些问题而设计。
+          guide: 学习率η从0.001开始，用Adam优化器自适应调节。batch_size影响梯度质量——32-256常见。训练时监控loss曲线确保平稳下降。梯度爆炸时用梯度裁剪。用验证集loss判断是否过拟合而非只看训练loss。
+        PyTorch框架入门:
+          desc: 理论知识掌握后需要选择工具实现——PyTorch是目前最流行的深度学习框架，以其动态计算图和Python风格API成为学术和工业的首选。
+          know: PyTorch核心概念：Tensor（GPU加速的多维数组，类似Numpy但支持自动求导）、autograd（自动计算梯度无需手动实现反向传播）、nn.Module（网络层基类，封装参数和前向传播）、DataLoader（数据批量加载，支持多进程和打乱）。动态计算图意味着每次前向传播重新构建图——这使得调试和条件控制远比静态图框架方便。
+          guide: 用model.train()和model.eval()切换训练/评估模式，影响Dropout和BN行为。用torch.nn.Sequential快速堆叠网络层。tensor.to(device)在GPU和CPU间迁移数据。用torch.utils.tensorboard或wandb可视化训练曲线。
+      code_examples:
+      - title: 感知机Numpy实现
+        code: "import numpy as np\n\nclass Perceptron:\n    def __init__(self, n_features, lr=0.01, epochs=50):\n        self.w = np.zeros(n_features)\n        self.b = 0\n        self.lr = lr\n        self.epochs = epochs\n\n    def predict(self, x):\n        return np.where(np.dot(x, self.w) + self.b > 0, 1, 0)\n\n    def fit(self, x, y):\n        for _ in range(self.epochs):\n            for xi, yi in zip(x, y):\n                y_pred = self.predict(xi)\n                self.w += self.lr * (yi - y_pred) * xi\n                self.b += self.lr * (yi - y_pred)"
+      diagrams:
+      - title: 多层感知机结构示意
+        path: 图/ch1_01_mlp_architecture.svg
+  - heading: 方案设计
+    data:
+      title: 手写数字识别方案设计
+      body: 设计任务：基于MNIST数据集，设计一个多层感知机分类模型。要求完成数据加载、模型定义、训练循环和评估流程，最终在测试集上达到97%以上的准确率。
+  - heading: 任务实践
+    data:
+      background: 使用PyTorch框架实现MLP，在MNIST数据集上训练并评估模型。
+      steps:
+      - 加载MNIST数据集，查看数据形状和标签分布
+      - 定义MLP模型（输入层784→隐藏层128→输出层10）
+      - 配置损失函数（交叉熵）和优化器（Adam）
+      - 训练10个epoch，记录训练和验证loss
+      - 在测试集上评估模型准确率
+      verification: 测试集准确率应达到97%以上，绘制训练曲线分析模型收敛情况。
+  - heading: 自测题
+    data:
+      test:
+      - 1. 感知机的激活函数是什么？ A. Sigmoid B. 阶跃函数 C. ReLU D. Tanh
+      - 2. 反向传播算法基于什么数学法则？ A. 乘积法则 B. 链式法则 C. 积分法则 D. 贝叶斯法则
+      - 3. 以下哪个不是梯度下降的变体？ A. SGD B. Adam C. KNN D. RMSprop
+      think:
+      - 1. 为什么感知机无法解决异或问题？多层网络是如何解决这一问题的？
+      - 2. 学习率过大或过小分别会导致什么后果？如何选择合适的学习率？
+      practice: 使用PyTorch实现一个三层神经网络，在Fashion-MNIST数据集上训练并达到85%以上的准确率，提交训练代码和准确率报告。
+- num: 2
+  title: 图像识别——卷积神经网络实战
+  hours: 10
+  theory_ratio: 0.5
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 需求分析与方案设计
+    data:
+      background: 图像识别是计算机视觉的核心任务，广泛应用于安防、医疗、自动驾驶等领域。传统图像分类方法依赖手工特征（SIFT、HOG等），而CNN通过卷积操作自动学习空间层次特征。
+      pain_points: 全连接网络处理图像时参数过多（224x224图像输入784维MLP需要百万级参数），忽略了像素的空间结构信息，易过拟合且计算开销大。
+      comparison:
+        headers:
+        - 对比维度
+        - 全连接网络
+        - 卷积神经网络
+        rows:
+        - - 参数数量
+          - 百万级
+          - 万级（参数共享）
+        - - 空间特征
+          - 忽略
+          - 自动提取
+        - - 平移不变性
+          - 无
+          - 有（池化操作）
+        - - 训练速度
+          - 慢
+          - 快（参数少）
+        conclusion: CNN通过参数共享和局部连接大幅减少参数量，同时保持空间特征提取能力，是图像识别的事实标准。
+      recommendation: 图像识别任务优先选择CNN，推荐从ResNet或MobileNet开始尝试
+    data:
+      background: 图像识别是计算机视觉的核心任务，广泛应用于安防、医疗、自动驾驶等领域。传统方法依赖手工特征，而CNN通过卷积操作自动学习空间层次特征。
+      pain_points: 全连接网络处理图像时参数过多，忽略了空间结构信息。
+      comparison:
+        headers:
+        - 对比维度
+        - 全连接网络
+        - 卷积神经网络
+        rows:
+        - - 参数数量
+          - 百万级
+          - 万级
+        - - 空间特征
+          - 忽略
+          - 自动提取
+        - - 平移不变性
+          - 无
+          - 有
+        - - 训练速度
+          - 慢
+          - 快
+        conclusion: CNN是图像识别的事实标准。
+  - heading: 核心技术讲解
+    data:
+      topics:
+        卷积运算与特征提取:
+          desc: 接到图像分类任务，需要理解CNN如何提取视觉特征——卷积核在图像上滑动，每个位置做点积运算，生成特征图捕捉局部模式。
+          know: 卷积运算使用可学习卷积核在输入上滑动，每个核关注一种局部模式（边缘、纹理、角点等）。多个卷积核堆叠形成多通道特征图。池化层（最大池化/平均池化）降低空间维度，引入平移不变性。感受野是输出特征图上每个像素对应输入图像的区域大小，深层网络感受野更大能捕捉全局信息。
+          guide: 卷积核大小通常3×3，步长1，填充same保持特征图尺寸。池化用2×2最大池化步长2降采样。网络深度增加时用Batch Normalization加速收敛。注意过拟合，用Dropout或数据增强。
+        经典CNN架构:
+          desc: 理解了卷积层和池化层之后，需要知道如何组织它们构建完整网络——LeNet、AlexNet、VGG、ResNet等经典架构各有设计思路。
+          know: LeNet5（1998）是第一个成功应用的CNN，用于手写数字识别。AlexNet（2012）引入ReLU和Dropout，在ImageNet上大幅超越传统方法。VGGNet（2014）证明深度对性能的重要性，统一使用3×3小卷积核。ResNet（2015）通过残差连接解决了深层网络的退化问题，可训练152层网络。这些架构展示了CNN设计的演进规律：更深、更宽、更高效。
+          guide: 初学者从ResNet18或MobileNetV3开始。不要自己从头设计架构，用预训练模型做迁移学习。注意输入尺寸要与模型匹配（通常224×224）。用torchvision.models直接加载预训练权重。
+      code_examples:
+      - title: PyTorch CNN示例
+        code: "import torch.nn as nn\n\nclass SimpleCNN(nn.Module):\n    def __init__(self, num_classes=10):\n        super().__init__()\n        self.conv1 = nn.Conv2d(1, 32, 3, 1)\n        self.conv2 = nn.Conv2d(32, 64, 3, 1)\n        self.pool = nn.MaxPool2d(2, 2)\n        self.fc1 = nn.Linear(64*12*12, 128)\n        self.fc2 = nn.Linear(128, num_classes)\n        self.relu = nn.ReLU()\n\n    def forward(self, x):\n        x = self.relu(self.conv1(x))\n        x = self.pool(self.relu(self.conv2(x)))\n        x = x.view(x.size(0), -1)\n        x = self.relu(self.fc1(x))\n        return self.fc2(x)"
+      diagrams:
+      - title: 卷积神经网络结构示意
+        path: 图/ch2_01_cnn_architecture.svg
+  - heading: 方案设计
+    data:
+      title: 图像分类方案设计
+      body: 设计任务：使用CNN实现CIFAR-10图像分类，要求在测试集上达到80%以上准确率，并对比不同深度网络的性能差异。
+  - heading: 任务实践
+    data:
+      background: 基于CIFAR-10数据集，从零搭建CNN分类模型。
+      steps:
+      - 加载CIFAR-10数据集，可视化样本
+      - 实现数据增强（随机翻转、旋转、裁剪）
+      - 搭建CNN模型（至少3个卷积层）
+      - 训练模型并绘制loss/accuracy曲线
+      - 在测试集上评估，输出混淆矩阵
+      verification: 测试集准确率80%+，不同学习率对比实验。
+  - heading: 自测题
+    data:
+      test:
+      - 1. 卷积层的核心优势是什么？ A. 参数量少 B. 训练更快 C. 提取空间特征 D. 以上都是
+      - 2. 池化层的作用不包括？ A. 降维 B. 平移不变性 C. 防止过拟合 D. 增加参数量
+      think:
+      - 1. 为什么ResNet能训练152层而VGG只能到19层？残差连接解决了什么问题？
+      practice: 使用迁移学习（预训练ResNet18）在自定义数据集上训练分类模型，提交微调代码和结果。
+- num: 3
+  title: 目标检测——YOLO原理与应用
+  hours: 10
+  theory_ratio: 0.5
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 需求分析与方案设计
+    data:
+      background: 目标检测需要同时完成分类和定位，是自动驾驶、安防监控、工业质检等领域的核心技术。YOLO将检测视为回归问题，单次前向传播即可输出物体类别和边界框。
+      pain_points: 传统目标检测（R-CNN系列）需要区域提议+分类两阶段处理，推理速度慢无法满足实时需求；滑动窗口法计算量巨大效率低。
+      comparison:
+        headers:
+        - 对比维度
+        - 两阶段检测（Faster R-CNN）
+        - 单阶段检测（YOLO）
+        rows:
+        - - 推理速度
+          - 5-10 FPS
+          - 30-150 FPS
+        - - 小目标检测
+          - 较好
+          - 一般
+        - - 训练难度
+          - 中等
+          - 较高
+        - - 部署复杂度
+          - 较高
+          - 简单
+        conclusion: YOLO在实时性上具有绝对优势，适合视频流和边缘端部署。
+  - heading: 核心技术讲解
+    data:
+      topics:
+        网格划分与边界框预测:
+          desc: 接到实时目标检测需求，YOLO将输入图像划分为S×S网格，每个网格负责检测中心点落在该网格内的物体——这使得检测过程极度简洁高效。
+          know: YOLO将图像划分为S×S网格，每个网格预测B个边界框和C个类别概率。每个边界框包含5个值：x、y（中心相对坐标）、w、h（宽高相对尺寸）和置信度。置信度表示框内有无目标及预测准确度。网络输出为S×S×(B*5+C)的张量。损失函数包含三部分：边界框回归损失、置信度损失和分类损失。
+          guide: 网格数S常用7、13、19，取决于特征图大小。锚框（anchor boxes）预定义初始框大小，用k-means聚类训练集标注得到。NMS（非极大抑制）去除重复检测，IoU阈值0.5。小物体用高分辨率输入或特征金字塔改善。
+        YOLO架构演进:
+          desc: 理解基础原理后需要选择合适的版本——YOLOv3引入多尺度检测，YOLOv4加入CSP结构和Mish激活，YOLOv5和v8由Ultralytics维护生态最佳。
+          know: YOLOv3（2018）引入FPN多尺度预测，在3个尺度上检测不同大小物体。YOLOv4（2020）集成了CSPDarknet53骨干、PANet颈部、Mish激活等优化，速度和精度达到最佳平衡。YOLOv5由Ultralytics用PyTorch实现，易用性好。YOLOv8（2023）是最新版本，支持检测、分割、姿态多种任务，训练API简洁。选型建议：学术研究用v4，工业部署推荐v8。
+          guide: 按Ultralytics官方文档安装，用pip install ultralytics。训练用yolo train model=yolov8n.pt data=coco128.yaml。导出用yolo export model=best.pt format=onnx。不要用小模型处理大物体，根据任务选n/s/m/l/x不同规格。
+      code_examples:
+      - title: YOLOv8预测示例
+        code: "from ultralytics import YOLO\n\n# 加载预训练模型\nmodel = YOLO('yolov8n.pt')\n\n# 预测\nresults = model('image.jpg')\n\n# 显示结果\nfor r in results:\n    boxes = r.boxes\n    for box in boxes:\n        x1, y1, x2, y2 = box.xyxy[0]\n        cls = int(box.cls[0])\n        conf = float(box.conf[0])\n        print(f'{model.names[cls]}: {conf:.2f}')"
+      diagrams:
+      - title: YOLO目标检测流程
+        path: 图/ch3_01_yolo_flow.svg
+  - heading: 方案设计
+    data:
+      title: 安全帽检测方案设计
+      body: 设计任务：基于YOLOv8训练一个安全帽佩戴检测模型。要求标注数据、训练和评估，最终在边缘设备（Jetson Nano）上部署。
+  - heading: 任务实践
+    data:
+      background: 使用Ultralytics框架训练安全帽检测模型。
+      steps:
+      - 收集和标注安全帽数据集（LabelImg或Roboflow）
+      - 划分训练/验证/测试集
+      - 配置YOLOv8训练参数
+      - 训练并监控mAP指标
+      - 模型导出为ONNX/TensorRT格式
+      - 在Jetson Nano上部署推理
+      verification: mAP@0.5达到90%+，边缘设备推理速度15 FPS+。
+  - heading: 自测题
+    data:
+      test:
+      - 1. YOLO将检测问题转化为？ A. 分类问题 B. 回归问题 C. 排序问题 D. 生成问题
+      - 2. NMS的作用是什么？ A. 增加检测框 B. 去除冗余检测框 C. 提高精度 D. 加速训练
+      think:
+      - 1. 单阶段检测和两阶段检测的核心区别是什么？各自的优缺点？
+      practice: 使用自定义数据集训练YOLOv8检测模型，提交训练日志和mAP曲线。
+- num: 4
+  title: 时序预测——LSTM与循环神经网络
+  hours: 8
+  theory_ratio: 0.6
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 需求分析与方案设计
+    data:
+      background: 时间序列预测在金融、气象、工业监控等领域有广泛应用。传统ARIMA等统计方法假设线性关系，难以捕捉复杂时序模式。LSTM通过门控机制解决了RNN的长期依赖问题。
+      pain_points: 传统RNN训练时梯度容易消失或爆炸，无法有效记忆长期依赖关系（如股票30天前的趋势对今日的影响）。
+      comparison:
+        headers:
+        - 对比维度
+        - 传统RNN
+        - LSTM
+        rows:
+        - - 长期记忆
+          - 差（梯度消失）
+          - 好（门控机制）
+        - - 参数量
+          - 少
+          - 多（4倍RNN）
+        - - 训练难度
+          - 简单
+          - 中等
+        - - 适用场景
+          - 短期依赖
+          - 长短期依赖
+        conclusion: LSTM在需要长期记忆的时序任务中优于传统RNN。
+  - heading: 核心技术讲解
+    data:
+      topics:
+        循环神经网络与梯度问题:
+          desc: 接到股票价格预测任务，需要理解序列数据处理——RNN通过隐藏状态传递过去信息，但长序列时梯度消失导致"遗忘"。
+          know: RNN通过隐藏状态hₜ=f(W·hₜ₋₁+U·xₜ+b)在时间步间传递信息。反向传播通过时间（BPTT）展开计算图，连乘效应导致长距离梯度消失或爆炸。梯度消失使网络无法学习长期依赖，梯度爆炸导致训练不稳定。tanh激活函数在饱和区梯度趋近0，加剧了消失问题。
+          guide: 梯度裁剪（clip_grad_norm_）防止梯度爆炸。用正交初始化缓解消失问题。双向RNN同时利用前后文信息。堆叠多层增加容量但注意过拟合。
+        LSTM门控机制:
+          desc: 理解了RNN的限制后，LSTM通过三个门控——遗忘门、输入门和输出门——精确控制信息的读写和遗忘，实现长期记忆。
+          know: LSTM引入细胞状态Cₜ作为信息高速公路。遗忘门fₜ=σ(W_f·[hₜ₋₁,xₜ]+b_f)决定丢弃哪些过去信息。输入门iₜ=σ(W_i·[hₜ₋₁,xₜ]+b_i)决定存储哪些新信息。输出门oₜ=σ(W_o·[hₜ₋₁,xₜ]+b_o)控制输出。新细胞状态Cₜ=fₜ⊙Cₜ₋₁+iₜ⊙tanh(W_c·[hₜ₋₁,xₜ]+b_c)。门控机制使LSTM能有效学习100步以上的长期依赖。
+          guide: 输入序列长度设为64-128步。用nn.LSTM(input_size, hidden_size, num_layers)。堆叠2-3层LSTM效果通常最好。用nn.utils.clip_grad_norm_防梯度爆炸。双向LSTM用bidirectional=True（隐藏维度翻倍）。
+      code_examples: []
+      diagrams:
+      - title: LSTM网络结构示意
+        path: 图/ch4_01_lstm_architecture.svg
+  - heading: 方案设计
+    data:
+      title: 股票价格预测方案设计
+      body: 设计任务：基于LSTM构建股票价格预测模型，使用历史价格数据预测未来N天的收盘价，评估指标为RMSE和MAPE。
+  - heading: 任务实践
+    data:
+      background: 使用LSTM预测股票收盘价，数据源为Yahoo Finance。
+      steps:
+      - 获取股票历史数据（使用yfinance库）
+      - 数据预处理：归一化、构造滑动窗口样本
+      - 构建LSTM模型（输入窗口长度60天）
+      - 训练模型并监控训练/验证loss
+      - 预测并反归一化，可视化预测vs真实值
+      verification: RMSE低于收盘价的5%，预测趋势方向准确率60%+。
+  - heading: 自测题
+    data:
+      test:
+      - 1. LSTM的三个门控分别是什么？ A. 输入门/输出门/遗忘门 B. 输入门/更新门/重置门 C. 遗忘门/重置门/更新门
+      - 2. BPTT的中文含义是？ A. 反向传播 B. 时间反向传播 C. 随时间反向传播
+      think:
+      - 1. LSTM如何解决RNN的梯度消失问题？门控机制在其中起到什么作用？
+      practice: 使用LSTM对同类时序数据（气温/电力负荷）进行预测，对比不同序列长度的效果差异。
+- num: 5
+  title: 生成模型——GAN原理与应用
+  hours: 8
+  theory_ratio: 0.6
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 需求分析与方案设计
+    data:
+      background: 生成对抗网络（GAN）通过生成器和判别器的博弈训练，能生成逼真的图像、音频和文本数据。在数据增强、风格迁移、超分辨率等领域有广泛应用。
+      pain_points: 传统生成模型（如VAE）生成的图像模糊，难以达到真实感。GAN通过对抗训练使生成分布逼近真实分布，生成质量大幅提升。
+      comparison:
+        headers:
+        - 对比维度
+        - VAE
+        - GAN
+        rows:
+        - - 生成质量
+          - 较模糊
+          - 清晰逼真
+        - - 训练稳定性
+          - 稳定
+          - 不稳定（模式崩塌）
+        - - 多样性
+          - 好
+          - 一般
+        - - 理论可解释性
+          - 强
+          - 弱
+        conclusion: GAN生成质量更高但训练更难控制，适合对图像质量要求高的场景。
+  - heading: 核心技术讲解
+    data:
+      topics:
+        对抗训练原理:
+          desc: 接到图像生成任务，需要理解GAN的核心——生成器G试图欺骗判别器D，判别器D试图区分真实和生成样本，两者在博弈中共同进步。
+          know: GAN包含两个网络：生成器G(z)将随机噪声z映射到数据空间，判别器D(x)输出样本为真实的概率。训练目标是min_G max_D V(D,G)=E[log D(x)]+E[log(1-D(G(z)))]。纳什均衡是理想状态：生成分布等于真实分布，判别器输出恒为0.5。实际训练中常出现模式崩塌（生成器只学会生成少数类别）和不收敛问题。
+          guide: 训练技巧：用标签平滑（label smoothing）避免判别器过于自信。交替训练G和D，每步D训练多次。用Adam优化器学习率0.0002。梯度惩罚（WGAN-GP）改善训练稳定性。监控生成样本质量而不仅是loss值。
+        DCGAN与条件GAN:
+          desc: 原始GAN训练不稳定，DCGAN引入卷积架构设计规范，条件GAN（cGAN）加入类别标签控制生成内容——让从随机生成走向可控生成。
+          know: DCGAN的架构设计规范：用卷积代替全连接层，用批归一化稳定训练，用ReLU（生成器）和LeakyReLU（判别器），不使用池化层。条件GAN将类别标签c作为额外输入同时送入G和D，使生成器能按指定类别生成样本。条件GAN将极大极小博弈扩展到max_G min_D V(D,G)=E[log D(x|c)]+E[log(1-D(G(z|c)))]。条件GAN为后续pix2pix、CycleGAN等条件生成任务奠定了基础。
+          guide: DCGAN生成器用转置卷积上采样。条件标签用embedding层嵌入。cGAN适合做数据增强按类生成。不要用太深的网络GAN训练困难。用GPU训练生成高分辨率图像。
+      code_examples: []
+      diagrams:
+      - title: 生成对抗网络架构
+        path: 图/ch5_01_gan_architecture.svg
+  - heading: 方案设计
+    data:
+      title: 人脸生成方案设计
+      body: 设计任务：基于DCGAN生成人脸图像，要求在CelebA数据集上训练，生成的图像人眼可辨认为人脸。
+  - heading: 任务实践
+    data:
+      background: 使用PyTorch实现DCGAN生成人脸图像。
+      steps:
+      - 加载CelebA数据集，预处理（中心裁剪+缩放至64×64）
+      - 实现DCGAN生成器和判别器
+      - 训练GAN模型（至少50个epoch）
+      - 可视化生成样本随训练过程的变化
+      - 分析模式崩塌等问题并尝试改进
+      verification: 生成图像清晰可辨，FID评分低于100。
+  - heading: 自测题
+    data:
+      test:
+      - 1. GAN的训练目标是？ A. 最小化交叉熵 B. 极大极小博弈 C. 最大化似然 D. 最小化MSE
+      - 2. 模式崩塌是指？ A. 网络不收敛 B. 生成样本单一 C. 判别器过强 D. 梯度消失
+      think:
+      - 1. GAN训练为什么比传统网络更难？列举至少3个常见问题和解决方法。
+      practice: 实现cGAN在MNIST上按数字类别生成图像，对比有无条件控制时的生成结果差异。
+- num: 6
+  title: 模型部署——从训练到服务
+  hours: 8
+  theory_ratio: 0.4
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 需求分析与方案设计
+    data:
+      background: 模型训练完成后需要部署到生产环境提供推理服务。从模型导出、优化、容器化到API服务，涉及完整的MLOps流程。
+      pain_points: 训练好的PyTorch模型不能直接在移动端/浏览器/边缘设备运行，需要格式转换和优化；模型文件大、推理延迟高，难以满足生产要求。
+      comparison:
+        headers:
+        - 对比维度
+        - PyTorch原生部署
+        - ONNX导出
+        - TensorRT优化
+        rows:
+        - - 跨平台支持
+          - 有限
+          - 好
+          - NVIDIA设备
+        - - 推理优化
+          - 无
+          - 轻度
+          - 深度优化
+        - - 部署难度
+          - 简单
+          - 中等
+          - 较复杂
+        - - 性能提升
+          - 基准
+          - 1.5x
+          - 3-5x
+        conclusion: ONNX用于跨平台便携部署，TensorRT用于极致性能场景。
+  - heading: 核心技术讲解
+    data:
+      topics:
+        模型导出与格式转换:
+          desc: 训练好的模型需要导出为通用格式才能在非Python环境运行——ONNX是开放的模型交换格式，支持跨框架和硬件部署。
+          know: ONNX（Open Neural Network Exchange）定义标准化的计算图和算子集，支持PyTorch→ONNX→TensorRT/CoreML/TFLite的转换流程。torch.onnx.export实现模型导出，需要提供示例输入和动态轴配置。ONNX算子版本和opsetset兼容性影响部署成功。量化（INT8/FP16）可减少模型体积50-75%并提升推理速度，但会带来1-3%的精度损失。
+          guide: 导出时用torch.onnx.export(model, dummy_input, 'model.onnx', opset_version=17, input_names=['input'], output_names=['output'])。用onnxruntime验证导出的ONNX模型。动态轴让batch_size和输入尺寸可变。注意算子兼容性，避免使用torch.onnx不支持的高级操作。
+        推理服务搭建:
+          desc: 模型转换完成后需要封装为API服务——FastAPI+ONNX Runtime是轻量高效的推理服务方案，支持RESTful API调用。
+          know: FastAPI基于Starlette框架，自动生成OpenAPI文档。推理服务架构：客户端请求→API层→预处理→ONNX Runtime推理→后处理→返回结果。关键指标：吞吐量（TPS）、延迟（P95/P99）、资源占用。使用异步处理提高并发能力。用Docker容器化打包模型和依赖，确保环境一致。用GPU需要nvidia-docker和CUDA运行时。
+          guide: FastAPI用@app.post('/predict')定义推理端点。ONNX Runtime用onnxruntime.InferenceSession加载模型。预处理用numpy或PIL。容器镜像用nvidia/cuda:11.8-runtime-ubuntu22.04。不要在生产环境用Python的pickle加载模型。API需要认证和速率限制。
+      code_examples:
+      - title: FastAPI推理服务
+        code: "from fastapi import FastAPI, File, UploadFile\nimport onnxruntime as ort\nimport numpy as np\nfrom PIL import Image\n\napp = FastAPI()\nsession = ort.InferenceSession('model.onnx')\n\n@app.post('/predict')\nasync def predict(file: UploadFile = File(...)):\n    img = Image.open(file.file).resize((224, 224))\n    input_tensor = np.array(img).astype(np.float32) / 255.0\n    input_tensor = np.transpose(input_tensor, (2, 0, 1))[None]\n    outputs = session.run(None, {'input': input_tensor})\n    return {'prediction': int(np.argmax(outputs[0]))}"
+      diagrams:
+      - title: 模型部署架构
+        path: 图/ch6_01_deployment_architecture.svg
+  - heading: 方案设计
+    data:
+      title: 模型部署方案设计
+      body: 设计任务：将之前训练的YOLOv8安全帽检测模型部署为REST API服务，要求支持图片上传和实时推理，延迟<500ms。
+  - heading: 任务实践
+    data:
+      background: 完整经历模型导出→服务搭建→容器化部署全流程。
+      steps:
+      - 将PyTorch模型导出为ONNX格式
+      - 使用ONNX Runtime验证推理结果
+      - 搭建FastAPI推理服务
+      - 编写Dockerfile构建容器镜像
+      - 部署到服务器并测试API
+      verification: API响应时间<500ms（GPU），容器镜像<2GB。
+  - heading: 自测题
+    data:
+      test:
+      - 1. ONNX的全称是？ A. Open Neural Network Exchange B. Open Neural Network Extension C. Online Neural Network Export
+      - 2. 以下哪个不是模型量化的好处？ A. 模型体积变小 B. 推理速度变快 C. 精度一定提升 D. 内存占用降低
+      think:
+      - 1. 从训练到部署的全流程中，最关键的步骤是什么？各步骤可能遇到哪些问题？
+      practice: 将任意训练好的模型部署为API服务，提交Dockerfile和API测试记录。

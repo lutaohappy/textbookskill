@@ -1,0 +1,324 @@
+template: 技术理论型
+course: 机器学习经典10大算法
+chapters:
+- num: 1
+  title: 线性回归——预测连续值
+  hours: 6
+  theory_ratio: 0.7
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 知识讲解
+    data:
+      topics:
+        线性回归模型:
+          concept: 线性回归是监督学习中最基础的回归算法，假设目标值与特征之间存在线性关系，用一条直线（或超平面）拟合数据点。
+          principle: 模型表达式y=wx+b，w为权重向量，b为偏置。训练目标是最小化预测值与真实值的均方误差（MSE）。最小二乘法通过求导得到解析解w=(XᵀX)⁻¹Xᵀy。梯度下降通过迭代更新参数：w=w-η·∂L/∂w。
+          application: 房价预测、销量预测、温度预测等连续值回归任务。
+          caution: 线性回归对异常值敏感；特征间高度相关时最小二乘法不稳定（可用正则化解决）；需要特征与目标之间近似线性关系。
+        评估指标:
+          concept: 回归任务的常用评估指标包括MSE（均方误差）、MAE（平均绝对误差）、R²（决定系数）。
+          principle: MSE=1/n·Σ(yᵢ-ŷᵢ)²对大误差惩罚更大。MAE=1/n·Σ|yᵢ-ŷᵢ|更鲁棒。R²=1-SS_res/SS_tot衡量模型解释的方差比例，取值0-1，越接近1越好。
+          application: 模型选择和调参时综合参考多个指标。
+          caution: MSE受量纲影响，对比不同数据集时需归一化。
+      diagrams:
+      - title: 线性回归拟合示意
+        path: 图/ch1_01_linear_regression_flow.svg
+  - heading: 实操指南
+    data:
+      background: 使用波士顿房价数据集实现线性回归。
+      steps:
+      - 加载数据，进行探索性数据分析
+      - 特征工程（标准化、处理缺失值）
+      - 使用sklearn.linear_model.LinearRegression训练
+      - 模型评估（MSE、MAE、R²）
+      - 可视化预测值与真实值对比
+      verification: R²>0.7，残差近似正态分布。
+  - heading: 技术选型对比
+    data:
+      title: 回归算法对比
+      headers:
+      - 算法
+      - 线性假设
+      - 可解释性
+      - 过拟合风险
+      rows:
+      - - 线性回归
+        - 是
+        - 高
+        - 低
+      - - 决策树回归
+        - 否
+        - 中
+        - 高
+      - - 随机森林回归
+        - 否
+        - 低
+        - 中
+      - - SVR
+        - 否
+        - 低
+        - 中
+      recommendation: 数据线性可分的回归问题首选线性回归，简单高效可解释。
+  - heading: 自测题
+    data:
+      test:
+      - 1. 线性回归的损失函数是什么？ A. 交叉熵 B. 均方误差 C. hinge loss D. KL散度
+      - 2. R²=0.8表示什么？ A. 80%的预测正确 B. 模型解释了80%的方差 C. 80%的数据拟合上了
+      think:
+      - 1. 梯度下降和最小二乘法的优缺点对比。
+      practice: 使用多元线性回归预测某个实际问题，提交分析报告。
+- num: 2
+  title: 逻辑回归——分类问题入门
+  hours: 4
+  theory_ratio: 0.7
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 知识讲解
+    data:
+      topics:
+        逻辑回归模型:
+          concept: 逻辑回归虽名为回归，实为二分类算法。通过Sigmoid函数将线性输出映射为0-1之间的概率值。
+          principle: 逻辑函数σ(z)=1/(1+e⁻ᶻ)将线性组合z=wx+b映射为概率。决策边界为σ(z)=0.5即z=0。损失函数为交叉熵L=-[y·log(ŷ)+(1-y)·log(1-ŷ)]，梯度下降优化。多分类用Softmax回归（Softmax函数输出各类概率和为1）。
+          application: 垃圾邮件检测、信用评分、疾病诊断、用户流失预测。
+          caution: 特征之间独立性假设较强；样本不平衡时需调整类别权重或采样；非线性边界需要特征组合或核方法。
+      diagrams: []
+  - heading: 技术选型对比
+    data:
+      title: 分类算法对比
+      headers:
+      - 算法
+      - 二分类
+      - 多分类
+      - 概率输出
+      rows:
+      - - 逻辑回归
+        - 是
+        - 是（Softmax）
+        - 是
+      - - SVM
+        - 是
+        - 是（OvR）
+        - 否
+      - - KNN
+        - 是
+        - 是
+        - 否
+      recommendation: 需要概率输出的分类任务首选逻辑回归。
+  - heading: 自测题
+    data:
+      test:
+      - 1. 逻辑回归使用什么激活函数？ A. ReLU B. Sigmoid C. Tanh D. Softplus
+      - 2. 多分类逻辑回归使用什么函数？ A. Sigmoid B. Softmax C. ReLU D. LeakyReLU
+      think:
+      - 1. 逻辑回归和线性回归的联系和区别是什么？
+      practice: 使用逻辑回归完成一个二分类任务，对比不同阈值对分类结果的影响。
+- num: 3
+  title: 决策树与随机森林
+  hours: 6
+  theory_ratio: 0.65
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 知识讲解
+    data:
+      topics:
+        决策树:
+          concept: 决策树通过树形结构对数据进行分类或回归，内部节点表示特征测试，叶节点表示决策结果。
+          principle: 决策树从根节点开始，在每个节点选择最优分裂特征。分裂准则：分类用信息增益（ID3）、增益率（C4.5）或基尼系数（CART）；回归用MSE。剪枝防止过拟合，分为预剪枝（限制树深度、最小叶节点样本数）和后剪枝（自底向上剪掉不重要的分支）。CART算法生成二叉树，分类树用基尼系数，回归树用MSE。
+          application: 信用评估、客户分类、医疗诊断、异常检测。
+          caution: 决策树易过拟合需要剪枝；对数据微小变化敏感（不稳定）；偏好有较多取值特征。
+        随机森林:
+          concept: 随机森林通过集成多个决策树并投票/平均，大幅降低方差，提升泛化能力。
+          principle: 随机森林的随机性体现在两个层面：1）Bootstrap抽样（每棵树用不同的训练集子集）2）特征随机选择（每个节点分裂时从随机子集中选最优特征）。Bagging策略使每棵树的训练数据略有差异，降低树之间的相关性。OOB（Out-of-Bag）评估利用未被抽中的样本做验证。
+          application: 特征重要度分析、高维数据分类、缺失值填充。
+          caution: 模型体积大推理慢；百棵以下树时效果不饱和；类别不平衡时需调整权重。
+      diagrams:
+      - title: 决策树结构示意
+        path: 图/ch3_01_decision_tree_structure.svg
+  - heading: 自测题
+    data:
+      test:
+      - 1. 决策树分裂时的常用准则不包括？ A. 信息增益 B. 基尼系数 C. 交叉熵 D. 方差缩减
+      - 2. 随机森林的随机性体现在哪些方面？ A. 样本随机 B. 特征随机 C. 两者都有 D. 两者都没有
+      think:
+      - 1. 决策树为什么容易过拟合？预剪枝和后剪枝分别如何防止过拟合？
+      practice: 使用随机森林完成一个分类任务，输出特征重要性排序。
+- num: 4
+  title: 支持向量机——寻找最优超平面
+  hours: 6
+  theory_ratio: 0.7
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 知识讲解
+    data:
+      topics:
+        最大间隔分类器:
+          concept: SVM寻找一个超平面使两类样本的间隔（margin）最大化，该超平面由少数支持向量决定。
+          principle: 间隔最大化等价于最小化||w||²，约束条件是每个样本正确分类且距离超平面至少为1。引入松弛变量处理线性不可分情况（软间隔SVM）。核函数将数据映射到高维空间解决非线性问题：多项式核、RBF核（高斯核）、Sigmoid核。RBF核参数γ控制高斯核的宽度影响模型复杂度。
+          application: 文本分类、图像识别、生物信息学、手写识别。
+          caution: 对特征尺度敏感需先标准化；RBF核的C和γ需要调参；大数据集训练慢（可用LinearSVM）。
+        核函数详解:
+          concept: 核函数通过核技巧隐式计算高维空间的内积，避免显式特征映射带来的计算爆炸。
+          principle: 常用核函数：1）线性核K(x,y)=x·y（等价于无核）2）多项式核K(x,y)=(γx·y+r)^d 3）RBF核K(x,y)=exp(-γ||x-y||²) 4）Sigmoid核K(x,y)=tanh(γx·y+r)。核矩阵需要满足Mercer条件。RBF核是最常用的默认选择参数少效果好。
+          application: 非线性分类、回归分析（SVR）、异常检测（One-Class SVM）。
+          caution: RBF核的γ过大过拟合γ过小欠拟合。C越大对错误容忍越低但可能过拟合。
+      diagrams: []
+  - heading: 自测题
+    data:
+      test:
+      - 1. SVM中的支持向量是指？ A. 所有训练样本 B. 决定超平面的关键样本 C. 随机选中的样本
+      - 2. 软间隔SVM引入什么参数控制错误容忍度？ A. γ B. C C. σ D. η
+      think:
+      - 1. 核函数的作用是什么？为什么核技巧能大幅降低计算复杂度？
+      practice: 使用SVM完成一个非线性分类任务，对比不同核函数的效果差异。
+- num: 5
+  title: K近邻——懒惰学习
+  hours: 4
+  theory_ratio: 0.6
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 知识讲解
+    data:
+      topics:
+        KNN算法:
+          concept: KNN是一种基于实例的懒惰学习算法，不做显式训练，预测时直接计算新样本与所有训练样本的距离，取K个最近邻的多数类（分类）或平均值（回归）。
+          principle: 三个核心要素：1）K值（邻居数）2）距离度量（欧氏距离、曼哈顿距离、余弦相似度）3）决策规则（多数投票或距离加权投票）。KD树和球树用于加速高维近邻搜索。K值小模型复杂易过拟合，K值大模型平滑欠拟合。距离加权投票使近邻影响更大。
+          application: 推荐系统、模式识别、异常检测、缺失值填充。
+          caution: 特征必须标准化否则量纲影响距离计算；对高维数据效果差（维度灾难）；预测阶段计算量大不适合大数据集。
+      diagrams: []
+  - heading: 自测题
+    data:
+      test:
+      - 1. KNN是参数化模型还是非参数化模型？ A. 参数化 B. 非参数化 C. 半参数化
+      - 2. K值越小模型复杂度越？ A. 高 B. 低 C. 不变
+      think:
+      - 1. 什么是维度灾难？KNN在高维数据中会遇到什么问题？
+      practice: 使用KNN完成一个分类任务，对比不同K值对准确率的影响。
+- num: 6
+  title: K-Means——无监督聚类
+  hours: 4
+  theory_ratio: 0.6
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 知识讲解
+    data:
+      topics:
+        K-Means算法:
+          concept: K-Means将数据划分为K个簇，使簇内样本相似度最高、簇间差异最大，是最经典的无监督聚类算法。
+          principle: 迭代四步：1）随机初始化K个质心 2）计算每个样本到各质心的距离分配至最近簇 3）更新质心为簇内均值 4）重复2-3直至收敛。优化目标是最小化簇内平方和（SSE/WCSS）。K值选择用肘部法则（SSE曲线拐点）或轮廓系数。初始质心选择对结果影响大，K-Means++改进初始化策略。
+          application: 客户分群、图像分割、文档聚类、异常检测。
+          caution: K需预先指定；对初始质心敏感；假设簇为球形，非凸簇效果差；对异常值敏感。
+      diagrams: []
+  - heading: 自测题
+    data:
+      test:
+      - 1. K-Means的目标是？ A. 最大化簇内差异 B. 最小化簇内平方和 C. 最大化簇间相似度
+      - 2. 肘部法则用于选择K值，拐点是指？ A. SS下降最快的点 B. SS下降趋缓的点 C. SS最小的点
+      think:
+      - 1. K-Means++如何改进K-Means的初始质心选择？
+      practice: 使用K-Means对客户数据进行分群，可视化聚类结果并解释各簇特征。
+- num: 7
+  title: 主成分分析——降维与可视化
+  hours: 4
+  theory_ratio: 0.65
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 知识讲解
+    data:
+      topics:
+        PCA原理:
+          concept: PCA通过正交变换将原始特征转换为线性不相关的主成分，按方差大小排序，用前K个主成分实现降维。
+          principle: PCA步骤：1）数据中心化 2）计算协方差矩阵 3）特征值分解 4）取Top-K特征向量构成投影矩阵。特征值大小表示主成分保留的方差量。降维后保留方差比例=前K特征值和/总特征值和。PCA假设主成分是原始特征的线性组合；Kernel PCA通过核技巧实现非线性降维。
+          application: 数据可视化（降到2D/3D）、特征压缩、去噪、高维数据预处理。
+          caution: 数据需要中心化；PCA对异常值敏感；降维后特征失去可解释性；变量需在同量纲下（或标准化后）。
+      diagrams: []
+  - heading: 自测题
+    data:
+      test:
+      - 1. PCA中特征值大小代表什么？ A. 特征重要度 B. 保留的方差量 C. 特征数量 D. 特征维度
+      - 2. PCA降维后的特征有什么特性？ A. 线性相关 B. 线性无关 C. 非线性 D. 稀疏
+      think:
+      - 1. PCA的适用场景和局限性分别是什么？
+      practice: 使用PCA对高维数据降维至2D进行可视化，解释前两个主成分的方差贡献。
+- num: 8
+  title: 朴素贝叶斯——概率分类
+  hours: 4
+  theory_ratio: 0.7
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 知识讲解
+    data:
+      topics:
+        朴素贝叶斯分类器:
+          concept: 朴素贝叶斯基于贝叶斯定理和特征条件独立假设，计算后验概率并选择最大概率类别。
+          principle: 贝叶斯定理P(y|x)=P(x|y)P(y)/P(x)。朴素假设：给定类别时各特征独立P(x|y)=P(x₁|y)·P(x₂|y)·...·P(xₙ|y)。三种常见变体：高斯朴素贝叶斯（连续特征）、多项式朴素贝叶斯（计数特征）、伯努利朴素贝叶斯（二元特征）。拉普拉斯平滑防止概率为零。
+          application: 垃圾邮件过滤、文本分类、情感分析、医疗诊断。
+          caution: 特征独立假设在现实中常不成立但实践中仍有效；对零概率问题需要平滑处理；不适合特征高度相关的数据。
+      diagrams: []
+  - heading: 自测题
+    data:
+      test:
+      - 1. 朴素贝叶斯的"朴素"体现在哪里？ A. 假设特征独立 B. 算法简单 C. 只处理文本 D. 不需要训练
+      - 2. 拉普拉斯平滑的作用是？ A. 防止过拟合 B. 防止概率为零 C. 加速训练 D. 特征选择
+      think:
+      - 1. 朴素贝叶斯为什么被广泛用于文本分类？特征独立假设在文本中是否合理？
+      practice: 使用朴素贝叶斯完成文本分类任务（如垃圾邮件识别），输出混淆矩阵。
+- num: 9
+  title: 集成学习——集体智慧的力量
+  hours: 6
+  theory_ratio: 0.65
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 知识讲解
+    data:
+      topics:
+        Bagging与Boosting:
+          concept: 集成学习通过组合多个基学习器获得比单一学习器更优的性能。Bagging（如随机森林）并行训练降低方差，Boosting（如AdaBoost）串行训练降低偏差。
+          principle: Bagging对训练集Bootstrap采样生成多个子集并行训练基学习器，投票/平均输出。Boosting每一步调整样本权重，聚焦上一轮错误的样本，最终加权组合。AdaBoost（Adaptive Boosting）增加误分类样本权重；Gradient Boosting用梯度下降拟合残差；XGBoost引入正则化和二阶泰勒展开。Stacking用元学习器组合多个异质基学习器的预测结果作为输入。
+          application: XGBoost是Kaggle竞赛最常用算法；随机森林是非线性分类默认选择。
+          caution: 基学习器需要"好而不同"；Boosting对噪声敏感；集成模型可解释性差。
+      diagrams:
+      - title: Bagging vs Boosting示意
+        path: 图/ch9_01_bagging_vs_boosting.svg
+  - heading: 自测题
+    data:
+      test:
+      - 1. Bagging和Boosting的核心区别是？ A. 并行vs串行 B. 回归vs分类 C. 深度vs浅层 D. 线性vs非线性
+      - 2. XGBoost相比GBDT的改进不包括？ A. 二阶泰勒展开 B. 正则项 C. 列采样 D. 自动调参
+      think:
+      - 1. 为什么Boosting集成往往比Bagging精度更高但更容易过拟合？
+      practice: 使用XGBoost完成一个分类任务，对比单一决策树和集成的效果差异。
+- num: 10
+  title: 神经网络基础
+  hours: 6
+  theory_ratio: 0.65
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 知识讲解
+    data:
+      topics:
+        多层感知机:
+          concept: 多层感知机（MLP）通过堆叠多个全连接层和非线性激活函数，可以逼近任意复杂函数，是深度学习的基石。
+          principle: MLP包含输入层、隐藏层和输出层。每层计算z=Wa+b后通过激活函数a=σ(z)。常见激活函数：ReLU（解决梯度消失）、Sigmoid（输出0-1）、Tanh（输出-1~1）、Softmax（多分类概率）。前向传播计算输出，反向传播通过链式法则更新权重。万能逼近定理：单隐藏层MLP可逼近任意连续函数。
+          application: 分类回归、模式识别、自然语言处理、图像识别的基础组件。
+          caution: 隐藏层神经元数量和层数需权衡（过深→过拟合/梯度问题）；需大量数据；可解释性差。
+      diagrams:
+      - title: 神经网络结构示意
+        path: 图/ch10_01_neural_network.svg
+  - heading: 自测题
+    data:
+      test:
+      - 1. ReLU激活函数的优点是？ A. 缓解梯度消失 B. 输出范围有限 C. 计算复杂 D. 梯度爆炸
+      - 2. 万能逼近定理说明MLP能逼近？ A. 线性函数 B. 连续函数 C. 凸函数 D. 单调函数
+      think:
+      - 1. 为什么深度学习需要大量数据和计算资源？与传统机器学习相比优势和劣势是什么？
+      practice: 使用PyTorch实现MLP完成手写数字识别，对比不同激活函数和隐藏层设计的效果差异。

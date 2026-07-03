@@ -1,0 +1,154 @@
+template: 混合型
+course: 无人机飞控与摄影测量
+chapters:
+- num: 1
+  title: 无人机系统组成与飞行原理
+  hours: 6
+  theory_ratio: 0.7
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 案例教学
+    data:
+      title: 大疆M300 RTK系统拆解
+      body: 以大疆M300 RTK行业级无人机为例，系统拆解其飞控系统、动力系统、通信系统和负载系统。介绍各模块的功能和选型依据，分析工业级和消费级无人机的设计差异。
+  - heading: 核心技术讲解
+    data:
+      topics:
+        飞控系统架构:
+          desc: 无人机飞控系统是无人机的大脑，负责姿态控制、导航定位和任务调度。飞控由主控芯片（STM32/FPGA）、传感器（IMU、磁力计、气压计、GPS/RTK）和执行机构（电调、舵机）三大部分组成。
+          know: 飞控的主控芯片运行实时操作系统，以400Hz以上的频率读取惯性传感器数据进行姿态解算，输出PWM控制电机转速。传感器融合使用扩展卡尔曼滤波（EKF）结合IMU和GPS数据，在GPS信号差时仍能保持稳定飞行。
+          guide: 开源飞控选PX4或ArduPilot，商业飞控选大疆或Auterion。调试时先检查传感器校准状态，观察EKF方差数值评估融合质量。
+        飞行控制原理:
+          desc: 理解了飞控硬件架构后，需要掌握无人机如何在空中保持稳定——PID控制器是飞控的核心算法。
+          know: 飞控使用串级PID控制：外环位置控制输出期望速度，内环速度控制输出期望姿态，最内环姿态控制输出PWM。俯仰（Pitch）、横滚（Roll）、偏航（Yaw）三个通道独立控制。调参顺序：先内环后外环，先P后I最后D。四旋翼通过调整四个电机的转速差实现姿态变化：前后电机差速影响俯仰，左右电机差速影响横滚。
+          guide: PID调参用试凑法：P从0.1开始逐步增加直到出现振荡，然后增加D抑制振荡。I用于消除静差。用Mission Planner或QGroundControl在线调参。
+      code_examples: []
+      diagrams: []
+  - heading: 技术方案设计
+    data:
+      title: 多旋翼无人机系统设计
+      body: 设计任务：根据任务需求（巡检/测绘/物流）设计多旋翼无人机系统，包含飞控选型、动力配置、传感器选择和通信方案。
+  - heading: 技术选型对比
+    data:
+      title: 飞控方案对比
+      headers:
+      - 维度
+      - PX4开源
+      - 大疆SDK
+      rows:
+      - - 开发自由度
+        - 高
+        - 受限
+      - - 算法支持
+        - 丰富
+        - 内置
+      - - 调试难度
+        - 高
+        - 低
+      recommendation: 研发阶段优先PX4，产品化可考虑大疆SDK。
+  - heading: 任务实践
+    data:
+      background: 使用PX4 SITL仿真环境模拟飞行。
+      steps:
+      - 安装PX4工具链和Gazebo仿真器
+      - 启动SITL仿真，连接QGroundControl
+      - 执行手动飞行（悬停、航线飞行）
+      - 调整PID参数观察姿态响应变化
+      verification: 在仿真中实现稳定的悬停和航线飞行。
+  - heading: 自测题
+    data:
+      test:
+      - 1. 飞控中传感器融合的常用算法是？ A. 卡尔曼滤波 B. FFT C. 小波变换 D. 卷积
+      - 2. 四旋翼偏航控制通过什么实现？ A. 前后电机差速 B. 左右电机差速 C. 对角电机差速 D. 全部电机同速
+      think:
+      - 1. 串级PID控制相比单级PID控制的优势是什么？
+      practice: 在Gazebo仿真中手动飞行通过三个连续航点，提交飞行日志。
+- num: 2
+  title: 航线规划与自主飞行
+  hours: 6
+  theory_ratio: 0.5
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 案例教学
+    data:
+      title: 电力巡检航线规划
+      body: 以500kV输电线路巡检为背景，设计无人机自主巡检航线。需要避开铁塔、跨越高压线、覆盖杆塔全角度，同时满足安全距离要求。
+  - heading: 核心技术讲解
+    data:
+      topics:
+        航线规划算法:
+          desc: 接到巡检任务需要规划覆盖全部目标的飞行路径——航线规划需要考虑覆盖率、安全距离、飞行时间和任务优先级。
+          know: 覆盖路径规划常用回字形扫描（boustrophedon）和螺旋扫描。航点间距由相机视场角和重叠率决定。安全距离包含水平安全距离和垂直安全距离，需根据线路电压等级调整。航点优化用旅行商问题（TSP）或遗传算法缩短总航程。Dubins曲线用于规划考虑无人机最小转弯半径的光滑路径。
+          guide: 测绘任务航向重叠率80%+旁向重叠率60%+。巡检任务安全距离：10kV线路3m，110kV线路5m，500kV线路8m。用QGroundControl或Mission Planner规划航点。
+        MAVLink通信协议:
+          desc: 无人机与地面站之间通过MAVLink协议通信——这是PX4/ArduPilot生态的核心通信标准。
+          know: MAVLink v2协议以微小的消息包（8-24字节）传输无人机状态、传感器数据和控制指令。心跳包（HEARTBEAT）以1Hz频率广播无人机的系统状态和模式。关键消息：GPS_RAW_INT（GPS数据）、ATTITUDE（姿态信息）、BATTERY_STATUS（电池信息）、GLOBAL_POSITION_INT（位置信息）。地面站通过COMMAND_LONG消息发送航线指令。
+          guide: 用mavlink-router或MAVSDK实现地面站和无人机的可靠通信。UDP用于本地测试，TCP用于远距离。注意消息频率不要超过串口带宽。
+      code_examples: []
+      diagrams: []
+  - heading: 技术方案设计
+    data:
+      title: 测绘航线规划方案
+      body: 设计任务：为某工业园区（500m×400m）设计航线，要求正射影像分辨率优于5cm/pixel，航向重叠80%，旁向重叠60%。
+  - heading: 任务实践
+    data:
+      background: 使用QGroundControl规划航线并执行自主飞行。
+      steps:
+      - 下载目标区域的卫星地图
+      - 在QGC中规划测绘航线（区域扫描）
+      - 设置航点参数（高度80m、速度8m/s、重叠率）
+      - 执行仿真飞行验证航线合理性
+      - 导出航点文件（.plan或.waypoints）
+      verification: 航线覆盖率达到100%，飞行总时间在电池续航范围内。
+  - heading: 自测题
+    data:
+      test:
+      - 1. 测绘航线的航向重叠率一般要求多少？ A. 50% B. 80% C. 60% D. 90%
+      - 2. MAVLink心跳包的发送频率是？ A. 10Hz B. 1Hz C. 50Hz D. 5Hz
+      think:
+      - 1. 航线规划中如何平衡覆盖率和飞行时间？
+      practice: 为某区域设计并仿真执行测绘航线，提交航线规划和覆盖报告。
+- num: 3
+  title: 摄影测量基础与三维重建
+  hours: 8
+  theory_ratio: 0.6
+  sections:
+  - heading: 学习目标
+    data: {}
+  - heading: 案例教学
+    data:
+      title: 古建筑三维数字化
+      body: 以某古塔为例，用无人机采集影像后通过摄影测量技术重建三维模型。介绍从航拍→空三→点云→Mesh→纹理贴图的完整流程。
+  - heading: 核心技术讲解
+    data:
+      topics:
+        空三解算原理:
+          desc: 拿到航拍影像后，需要从多张二维照片恢复三维空间信息——空中三角测量（空三）是摄影测量的核心步骤。
+          know: 空三基于共线方程：像点、镜头中心和地物点三点共线。通过匹配多张照片的相同特征点（SIFT或SuperPoint特征），计算每张照片的内外方位元素。光束法平差（Bundle Adjustment）同时优化相机位姿和三维点坐标。稀疏点云经过MVS（Multi-View Stereo）稠密匹配生成密集点云。
+          guide: 影像重叠度不足会导致空三失败。检查点（Check Point）用于精度评估至少3个。有GPS/RTK信息的照片可大幅减少控制点需求。用Metashape或Pix4Dmapper处理。
+        点云处理与建模:
+          desc: 稠密点云需要通过滤波、分割和网格化才能生成可用的三维模型——理解点云处理流程是摄影测量工程师的基本功。
+          know: 点云滤波常用统计滤波（去除离群点）和体素滤波（降采样）。地面点滤波用渐进形态学或CSF算法。泊松重建（Poisson Surface Reconstruction）将点云转换为三角网格。模型简化用二次误差度量（QEM）算法。纹理映射将原始照片映射到三角网格表面，需要生成纹理图集（Texture Atlas）。
+          guide: 用CloudCompare或MeshLab查看和处理点云。PCL库编程处理点云。重建质量与照片质量和重叠率密切相关不要过度依赖算法。
+      code_examples: []
+      diagrams: []
+  - heading: 任务实践
+    data:
+      background: 使用公开数据集完成三维重建。
+      steps:
+      - 下载一组航拍影像数据集
+      - 在Metashape中执行空三解算
+      - 生成稠密点云
+      - 重建三角网格并贴纹理
+      - 导出模型并查看质量
+      verification: 空三重投影误差<1像素，模型纹理清晰无漂移。
+  - heading: 自测题
+    data:
+      test:
+      - 1. 空三解算基于什么几何模型？ A. 共线方程 B. 共面方程 C. 透视投影 D. 正交投影
+      - 2. 检查点用于什么目的？ A. 参与平差 B. 精度评估 C. 特征提取 D. 模型简化
+      think:
+      - 1. 照片重叠率对三维重建质量的影响有哪些？
+      practice: 完成一组航拍影像的三维重建，提交空三报告和模型截图。

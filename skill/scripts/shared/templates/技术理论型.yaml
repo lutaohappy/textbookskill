@@ -1,0 +1,28 @@
+name: 技术理论型（概念+原理+应用）
+description: 以知识体系为主线，注重概念理解和理论推导
+sections:
+  - heading: 学习目标
+    type: objectives
+    budget_ratio: 0.05
+    write_task: 撰写三维学习目标（知识目标3-4条、技能目标2-3条、素养目标1-2条）。
+  - heading: 知识讲解
+    type: knowledge_theory
+    budget_ratio: 0.45
+    write_task: 2-3个核心技术概念，每个含概念定义、原理说明、应用场景和注意事项。
+  - heading: 实操指南
+    type: experiment
+    budget_ratio: 0.20
+    write_task: 3-5个实践步骤，包含背景、步骤、验证方法。
+  - heading: 技术选型对比
+    type: comparison
+    budget_ratio: 0.10
+    write_task: 制作方案比较表格（4-6个维度），给出选型建议。
+  - heading: 自测题
+    type: self_test
+    budget_ratio: 0.10
+    write_task: 3道选择题+2道思考题+1道实操题。
+  - heading: 课后拓展
+    type: case
+    budget_ratio: 0.10
+    optional: true
+    write_task: 拓展阅读资料、延伸思考题、课外实践任务。

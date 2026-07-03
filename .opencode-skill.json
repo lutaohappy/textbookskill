@@ -1,0 +1,14 @@
+{
+  "name": "vocational-course-generator",
+  "description": "Template-driven vocational course curriculum development with three-step workflow (TOC→YAML→build) and automatic SVG diagram embedding",
+  "location": "skill/SKILL.md",
+  "triggers": [
+    "generate course",
+    "develop curriculum",
+    "create textbook",
+    "课程开发",
+    "教材生成",
+    "教案开发"
+  ],
+  "categories": ["education", "curriculum", "content-generation"]
+}
